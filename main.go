@@ -42,7 +42,7 @@ func main() {
 
 	client, err := sarama.NewClient([]string{broker}, config())
 	if err != nil {
-		fmt.Println("Failed to create Kafka client: %w", err)
+		fmt.Println(fmt.Errorf("Failed to create Kafka client: %w", err))
 		return
 	}
 	defer client.Close()
