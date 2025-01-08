@@ -19,7 +19,14 @@ type MSKAccessTokenProvider struct {
 }
 
 func (m *MSKAccessTokenProvider) Token() (*sarama.AccessToken, error) {
-	token, _, err := signer.GenerateAuthToken(context.TODO(), "eu-central-1")
+	token, id, err := signer.GenerateAuthToken(context.TODO(), "eu-central-1")
+	fmt.Println(">>> Token()")
+	fmt.Println(">" + token)
+	fmt.Println(">" + fmt.Sprint(id))
+	if err != nil {
+		fmt.Println(">" + err.Error())
+	}
+	fmt.Println("<<< Token()")
 	return &sarama.AccessToken{Token: token}, err
 }
 
