@@ -31,6 +31,7 @@ func (m *MSKAccessTokenProvider) Token() (*sarama.AccessToken, error) {
 }
 
 func main() {
+	signer.AwsDebugCreds = true
 	if len(os.Args) < 2 {
 		fmt.Println("provide broker url")
 		return
