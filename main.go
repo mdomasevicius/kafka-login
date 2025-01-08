@@ -19,6 +19,7 @@ type MSKAccessTokenProvider struct {
 }
 
 func (m *MSKAccessTokenProvider) Token() (*sarama.AccessToken, error) {
+	signer.AwsDebugCreds = true
 	token, id, err := signer.GenerateAuthToken(context.TODO(), "eu-central-1")
 	fmt.Println(">>> Token()")
 	fmt.Println(">" + token)
@@ -31,7 +32,6 @@ func (m *MSKAccessTokenProvider) Token() (*sarama.AccessToken, error) {
 }
 
 func main() {
-	signer.AwsDebugCreds = true
 	if len(os.Args) < 2 {
 		fmt.Println("provide broker url")
 		return
