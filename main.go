@@ -28,5 +28,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	client.LoopOutQuote(context.Background(), "50000000")
+	quote, err := client.LoopOutQuote(context.Background(), "50000000")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(fmt.Sprintf("%+v", quote))
 }
