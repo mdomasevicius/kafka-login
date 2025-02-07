@@ -2,73 +2,31 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
+	"encoding/json"
 	"fmt"
-	"github.com/IBM/sarama"
-	"github.com/aws/aws-msk-iam-sasl-signer-go/signer"
 	"os"
 )
 
-var (
-	kafkaBrokers = []string{"<your_msk_bootstrap_string>"}
-	KafkaTopic   = "<your topic name>"
-	enqueued     int
-)
-
-type MSKAccessTokenProvider struct {
-}
-
-func (m *MSKAccessTokenProvider) Token() (*sarama.AccessToken, error) {
-	signer.AwsDebugCreds = true
-	token, id, err := signer.GenerateAuthToken(context.TODO(), "eu-central-1")
-	fmt.Println(">>> Token()")
-	fmt.Println(">" + token)
-	fmt.Println(">" + fmt.Sprint(id))
-	if err != nil {
-		fmt.Println(">" + err.Error())
-	}
-	fmt.Println("<<< Token()")
-	return &sarama.AccessToken{Token: token}, err
-}
-
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("provide broker url")
-		return
-	}
-
-	//region := "us-east-1"                                         // Replace with your region
-	broker := os.Args[1] // Replace with your broker
-
-	client, err := sarama.NewClient([]string{broker}, config())
+	open, err := os.Open("config.json")
 	if err != nil {
-		fmt.Println(fmt.Errorf("Failed to create Kafka client: %w", err))
-		return
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	defer client.Close()
+	defer open.Close()
 
-	topics, err := client.Topics()
+	var cfg RestClientConfig
+	err = json.NewDecoder(open).Decode(&cfg)
 	if err != nil {
-		fmt.Println("Failed to get topics: %v", err)
-		return
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	fmt.Println("Kafka client successfully connected.")
-	fmt.Println("Topics:")
-	for i, topic := range topics {
-		fmt.Println(fmt.Sprint(i) + " - " + topic)
+
+	client, err := NewRestClient(cfg)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
-}
 
-func config() *sarama.Config {
-	// Set the SASL/OAUTHBEARER configuration
-	c := sarama.NewConfig()
-	c.Net.SASL.Enable = true
-	c.Net.SASL.Mechanism = sarama.SASLTypeOAuth
-	c.Net.SASL.TokenProvider = &MSKAccessTokenProvider{}
-
-	tlsConfig := tls.Config{}
-	c.Net.TLS.Enable = true
-	c.Net.TLS.Config = &tlsConfig
-
-	return c
+	client.LoopOutQuote(context.Background(), "50000000")
 }
